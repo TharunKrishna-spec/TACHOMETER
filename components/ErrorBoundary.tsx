@@ -1,4 +1,5 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+// FIX: Changed import to use named import for Component to fix type resolution issues.
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -8,10 +9,17 @@ interface State {
   hasError: boolean;
 }
 
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
+// FIX: Changed React.Component to Component to resolve issue where props were not being recognized.
+class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
   public state: State = {
     hasError: false,
   };
+
+  // FIX: Added constructor with super(props) to resolve a potential type resolution issue
+  // where 'this.props' was not being recognized on the class instance.
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+  }
 
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.

@@ -22,7 +22,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
       <SpiralAnimation />
       
       <motion.div
-        className="absolute left-1/2 top-[55%] -translate-x-1/2 -translate-y-1/2 z-10"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={buttonVisible ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1.5, ease: 'easeOut' }}

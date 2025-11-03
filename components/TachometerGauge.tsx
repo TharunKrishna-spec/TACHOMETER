@@ -125,7 +125,7 @@ const TachometerGauge: React.FC<TachometerGaugeProps> = ({ rpm, maxRpm = 8000 })
         <circle cx="50" cy="50" r="3" className="fill-background-dark" />
         
         {/* Digital Readout */}
-        <text x="50" y="70" textAnchor="middle" className={`text-[1.5rem] font-mono font-bold tracking-wider transition-colors duration-300 ${isRedline ? 'fill-red-500' : 'fill-off-white'}`} style={{filter: `drop-shadow(0 0 5px ${isRedline ? '#EF4444' : '#00F5D4'})`}}>{Math.round(rpm)}</text>
+        <text x="50" y="65" textAnchor="middle" className={`text-[1.25rem] font-mono font-bold tracking-wider transition-colors duration-300 ${isRedline ? 'fill-red-500' : 'fill-off-white'}`} style={{filter: `drop-shadow(0 0 5px ${isRedline ? '#EF4444' : '#00F5D4'})`}}>{Math.round(rpm)}</text>
         <text x="50" y="80" textAnchor="middle" className="fill-gray-400 text-xs font-mono tracking-widest">RPM</text>
       </svg>
     </div>
