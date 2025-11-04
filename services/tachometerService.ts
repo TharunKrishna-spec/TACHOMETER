@@ -1,133 +1,90 @@
 import { TachometerDataPoint } from '../types';
-import { database } from '../firebaseConfig';
 
 /**
- * A helper function to wrap a promise with a timeout.
- * @param promise The promise to wrap.
- * @param ms The timeout duration in milliseconds.
- * @param timeoutError The error to reject with on timeout.
- * @returns A new promise that races the original promise against the timeout.
+ * MOCK IMPLEMENTATION
+ * This service is mocked to provide a functional demo without a real Firebase backend.
  */
-const promiseWithTimeout = <T,>(
-  promise: Promise<T>,
-  ms: number,
-  timeoutError = new Error('Operation timed out')
-): Promise<T> =>
-  new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(timeoutError);
-    }, ms);
 
-    promise
-      .then((value) => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch((reason) => {
-        clearTimeout(timer);
-        reject(reason);
-      });
-  });
+// A running interval timer for the mock data stream
+let mockDataInterval: number | null = null;
 
 /**
- * Checks if a device node exists in the Firebase Realtime Database.
- * This is used to validate a Device ID before proceeding to the dashboard.
- * @param deviceId The ID of the device to check.
- * @returns A promise that resolves to true if the device exists, false otherwise.
+ * Helper to generate a single mock data point for the stream.
+ * @param time The current timestamp.
+ * @returns A new TachometerDataPoint.
  */
-export const checkDeviceExists = async (deviceId: string): Promise<boolean> => {
-  console.log(`Checking for existence of device: ${deviceId}`);
-  const deviceRef = database.ref(`devices/${deviceId}`);
-  try {
-    const snapshot = await promiseWithTimeout(
-      deviceRef.get(),
-      5000, // 5-second timeout
-      new Error('Verification timed out. Please check your Firebase configuration and network connection.')
-    );
-    // FIX: Cast snapshot to 'any' to access the 'exists' method, as its type is inferred as 'unknown'.
-    return (snapshot as any).exists();
-  } catch (error) {
-    console.error("Firebase check error:", error);
-    // Re-throw the specific timeout error or a generic one to be handled by the UI
-    if (error instanceof Error) {
-        throw error;
-    }
-    throw new Error('Could not verify device existence.');
-  }
+const generateMockDataPoint = (time: number): TachometerDataPoint => {
+    // A combination of sine waves with some noise to simulate engine revving
+    const baseRpm = 450;
+    const revCycle = 300 * Math.sin(time / 5000); // Slow rev cycle
+    const fastFluctuation = 150 * Math.sin(time / 1800); // Faster vibration/fluctuation
+    const noise = 50 * Math.random();
+    const newRpm = baseRpm + revCycle + fastFluctuation + noise;
+    return { timestamp: time, rpm: Math.max(0, Math.round(newRpm)) };
 };
 
 /**
- * Sets the power state of a device by writing to Firebase Realtime Database.
- * The ESP32 should be listening for changes at this location.
+ * Checks if a device node exists.
+ * MOCK: Simulates a network call and always returns true for a demo.
+ * @param deviceId The ID of the device to check.
+ * @returns A promise that resolves to true.
+ */
+export const checkDeviceExists = async (deviceId: string): Promise<boolean> => {
+  console.log(`MOCK: Checking for existence of device: ${deviceId}`);
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  // In a real app, this would check a database. For the demo, we always succeed.
+  return true;
+};
+
+/**
+ * Sets the power state of a device.
+ * MOCK: Simulates setting power state without a real backend.
  * @param deviceId The ID of the device to control.
  * @param isOn The desired power state (true for on, false for off).
  */
 export const setDevicePowerState = async (deviceId: string, isOn: boolean): Promise<void> => {
-  console.log(`Setting device ${deviceId} power state to: ${isOn}`);
-  const powerStateRef = database.ref(`devices/${deviceId}/is_on`);
-  try {
-    await powerStateRef.set(isOn);
-  } catch (error) {
-    console.error("Firebase write error:", error);
-    throw new Error("Failed to communicate with the device via the cloud.");
-  }
+  console.log(`MOCK: Setting device ${deviceId} power state to: ${isOn}`);
+  // In a real app, this would write to the database.
+  return Promise.resolve();
 };
 
 /**
- * Subscribes to the live data stream from Firebase for a specific device.
- * It first loads the last 60 data points for historical context, then listens for new data.
+ * Subscribes to a live data stream from a device.
+ * MOCK: Generates a fake data stream using setInterval.
  * @param deviceId The ID of the device to monitor.
  * @param callback The function to call with new data points.
- * @returns An unsubscribe function to stop listening to the data stream.
+ * @returns An unsubscribe function to stop the data stream.
  */
 export const startDataStream = (deviceId: string, callback: (data: TachometerDataPoint[]) => void): (() => void) => {
-  console.log(`Starting data stream from Firebase for device: ${deviceId}`);
-  const dataRef = database.ref(`devices/${deviceId}/data`);
+  console.log(`Starting MOCK data stream for device: ${deviceId}`);
 
-  let listener: any;
-  let liveQuery: any;
+  // Clear any existing interval to prevent multiple streams running
+  if (mockDataInterval) {
+    clearInterval(mockDataInterval);
+  }
 
-  // 1. Fetch the last 60 data points to populate the chart initially.
-  const initialQuery = dataRef.orderByChild('timestamp').limitToLast(60);
-  
-  initialQuery.once('value', (snapshot) => {
-    let lastKnownTimestamp = 0;
-    const initialData: TachometerDataPoint[] = [];
+  // Immediately send a batch of historical data to populate the chart on load
+  const initialData: TachometerDataPoint[] = [];
+  const now = Date.now();
+  // Generate the last 60 seconds of data at 4 points per second
+  for (let i = 60 * 4; i > 0; i--) {
+      initialData.push(generateMockDataPoint(now - i * 250));
+  }
+  callback(initialData);
 
-    if (snapshot.exists()) {
-      snapshot.forEach((childSnapshot) => {
-        const point = childSnapshot.val();
-        initialData.push(point);
-        lastKnownTimestamp = Math.max(lastKnownTimestamp, point.timestamp);
-      });
-      // Sort data to ensure it's in chronological order before sending to the UI
-      initialData.sort((a, b) => a.timestamp - b.timestamp);
-      callback(initialData);
-    }
+  // Start a live stream of new data points every 500ms
+  mockDataInterval = window.setInterval(() => {
+    const newDataPoint = generateMockDataPoint(Date.now());
+    callback([newDataPoint]);
+  }, 500);
 
-    // 2. After the initial load, listen for new data points.
-    // We start listening from a timestamp just after the last known one to avoid duplicates.
-    const startTimestamp = lastKnownTimestamp > 0 ? lastKnownTimestamp + 1 : Date.now();
-    liveQuery = dataRef.orderByChild('timestamp').startAt(startTimestamp);
-    
-    listener = liveQuery.on('child_added', (newSnapshot: any) => {
-      if (newSnapshot.exists()) {
-        const newDataPoint = newSnapshot.val() as TachometerDataPoint;
-        callback([newDataPoint]);
-      }
-    }, (error: Error) => {
-      console.error("Firebase read error:", error);
-    });
-
-  }, (error: Error) => {
-    console.error("Firebase initial read error:", error);
-  });
-
-  // Return a function to clean up the live data listener.
+  // Return a function to clean up the interval when the component unmounts
+  // or the device is turned off.
   return () => {
-    console.log(`Stopping data stream for device: ${deviceId}`);
-    if (liveQuery && listener) {
-        liveQuery.off('child_added', listener);
+    console.log(`Stopping MOCK data stream for device: ${deviceId}`);
+    if (mockDataInterval) {
+      clearInterval(mockDataInterval);
+      mockDataInterval = null;
     }
   };
 };

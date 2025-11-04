@@ -1,147 +1,169 @@
-
-import React, { useState, useMemo, useEffect } from 'react';
-import { TachometerIcon } from './icons/TachometerIcon';
-// FIX: Import Variants type from framer-motion to correctly type animation variants.
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { EvervaultCard, Icon } from './EvervaultCard';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { HyperText } from './HyperText';
+import DashboardPreview from './DashboardPreview';
+import { ArrowRightIcon } from './icons/ArrowRightIcon';
+import FoundersSection from './FoundersSection'; // Import the new component
 
 interface LandingPageProps {
   onGetStarted: () => void;
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.3,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { y: 30, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      duration: 0.8,
-      ease: [0, 0, 0.58, 1.0],
-    },
-  },
-};
-
+// FIX: Made the `children` prop optional (`children?: React.ReactNode`) to resolve a TypeScript error where it was reported as missing, even though it was provided in the JSX.
+const FeatureCard = ({ icon, title, children }: { icon: string; title: string; children?: React.ReactNode }) => (
+    <motion.div 
+      className="bg-panel-dark backdrop-blur-xl border border-cyan-tech-300/20 rounded-2xl p-6 text-left"
+      whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(0, 245, 212, 0.5)' }}
+      transition={{ type: 'spring', stiffness: 300 }}
+    >
+      <div className="text-4xl mb-4">{icon}</div>
+      <h3 className="text-xl font-bold text-off-white mb-2">{title}</h3>
+      <p className="text-gray-400">{children}</p>
+    </motion.div>
+);
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
-  const [wordIndex, setWordIndex] = useState(0);
-  const words = useMemo(
-    () => ["POWERFUL", "PRECISE", "DYNAMIC", "EFFICIENT", "LIVE"],
-    []
-  );
-
-  const founders = useMemo(
-    () => [
-      { name: 'Tharun Krishna', initials: 'TK' },
-      { name: 'GokulRaj', initials: 'GR' },
-      { name: 'Jayakumar', initials: 'JK' }
-    ], []
-  );
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setWordIndex((prevIndex) => (prevIndex + 1) % words.length);
-    }, 2500);
-    return () => clearInterval(intervalId);
-  }, [words.length]);
-  
   return (
-    <div className="min-h-screen flex items-center justify-center font-sans p-4 text-center overflow-hidden">
-      <motion.div 
-        className="relative w-full max-w-5xl p-8 space-y-8"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <div className="absolute inset-0 -z-10 bg-panel-dark backdrop-blur-2xl border border-cyan-tech-300/20 rounded-3xl opacity-50 transform-gpu scale-90"></div>
+    <div className="font-sans text-off-white overflow-x-hidden">
+      {/* Hero Section */}
+      <section className="h-screen flex flex-col items-center text-center p-4 relative">
+        <div className="absolute inset-0 bg-grid [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
         
-        <motion.div className="flex justify-center mb-8" variants={itemVariants}>
-            <TachometerIcon className="w-32 h-32 text-cyan-tech-300" />
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          style={{ textShadow: '0 0 15px rgba(0, 245, 212, 0.4)' }}
-          className="flex justify-center"
-        >
-          <HyperText
-            text="TACHOMETER"
-            className="text-5xl md:text-7xl font-bold text-off-white tracking-wider"
-            duration={1500}
-           />
-        </motion.div>
-
-        <motion.div
-          className="text-xl md:text-2xl text-gray-300 font-light tracking-wide max-w-2xl mx-auto flex justify-center items-center gap-2 md:gap-3 h-10"
-          variants={itemVariants}
-        >
-          <span>Real-time</span>
-          <div className="relative w-48 h-full">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={wordIndex}
-                className="absolute inset-0 flex items-center justify-center font-semibold text-cyan-tech-300"
+        <div className="flex-1 flex flex-col items-center justify-center">
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-              >
-                {words[wordIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-          <span>Monitoring</span>
-        </motion.div>
-
-        <motion.p 
-          className="text-gray-400 max-w-xl mx-auto"
-          variants={itemVariants}
-        >
-          Connect to your ESP32-powered device and visualize RPM data with unparalleled precision and futuristic aesthetics.
-        </motion.p>
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <HyperText
+                text="TACHOMETER MONITOR"
+                className="text-5xl md:text-7xl font-bold text-off-white tracking-wider"
+              />
+            </motion.div>
+            <motion.p 
+                className="mt-4 text-xl md:text-2xl text-cyan-tech-200 font-light tracking-widest"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            >
+                Real-time. Precise. Powerful.
+            </motion.p>
+            <motion.p 
+              className="mt-6 max-w-2xl mx-auto text-gray-400"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            >
+              Connect to your IoT-enabled tachometer, like an ESP32, and instantly visualize performance data. Perfect for tuning, diagnostics, and pushing the limits of your machine.
+            </motion.p>
+            <motion.button
+              onClick={onGetStarted}
+              className="mt-10 relative z-20 flex items-center gap-2 py-4 px-10 border border-transparent text-md font-bold rounded-lg text-black bg-cyan-tech-300 hover:bg-cyan-tech-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-cyan-tech-500 transition-all duration-300 transform hover:scale-105 shadow-glow-cyan"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            >
+              Connect to Device
+              <ArrowRightIcon className="w-5 h-5" />
+            </motion.button>
+        </div>
         
-        <motion.div className="pt-6" variants={itemVariants}>
-          <button
-            onClick={onGetStarted}
-            className="w-full sm:w-auto shrink-0 flex justify-center items-center mx-auto py-4 px-10 border border-transparent text-md font-bold rounded-lg text-black bg-cyan-tech-300 hover:bg-cyan-tech-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-cyan-tech-500 transition-all duration-300 transform hover:scale-105 shadow-glow-cyan"
-          >
-            GET STARTED
-          </button>
-        </motion.div>
-
-        {/* New Founders Section */}
-        <motion.div className="pt-20" variants={itemVariants}>
-            <h2 className="text-3xl font-bold text-off-white tracking-wider mb-12">Meet The Founders</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                {founders.map((founder) => (
-                    <div key={founder.name} className="border border-cyan-tech-300/20 flex flex-col items-center p-4 relative h-[24rem] rounded-3xl">
-                        <Icon className="absolute h-6 w-6 -top-3 -left-3 text-cyan-tech-300" />
-                        <Icon className="absolute h-6 w-6 -bottom-3 -left-3 text-cyan-tech-300" />
-                        <Icon className="absolute h-6 w-6 -top-3 -right-3 text-cyan-tech-300" />
-                        <Icon className="absolute h-6 w-6 -bottom-3 -right-3 text-cyan-tech-300" />
-
-                        <EvervaultCard text={founder.initials} />
-
-                        <h3 className="text-off-white mt-4 text-lg font-semibold tracking-wider">
-                            {founder.name}
-                        </h3>
-                    </div>
-                ))}
+        {/* Features Cards moved to the bottom of the hero section */}
+        <motion.div
+          className="w-full pb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
+        >
+            <div className="max-w-6xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <FeatureCard icon="🔁" title="Live RPM Monitoring">
+                      Stream your engine’s RPM in real time — precision readings updated every second.
+                    </FeatureCard>
+                    <FeatureCard icon="📈" title="Performance Analytics">
+                      Visualize speed fluctuations, average RPM, and redline zones with interactive charts.
+                    </FeatureCard>
+                    <FeatureCard icon="🕹️" title="Session Control">
+                      Start or stop runs remotely and save session data automatically for later analysis.
+                    </FeatureCard>
+                </div>
             </div>
         </motion.div>
+      </section>
 
-      </motion.div>
+      {/* Visualization Preview Section */}
+      <section className="py-24 px-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+                <DashboardPreview />
+            </motion.div>
+            <motion.div
+                className="text-center lg:text-left"
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+                <h2 className="text-4xl font-bold tracking-wider">Your Data. Your Dashboard.</h2>
+                <p className="mt-6 text-gray-400 text-lg">
+                  Every movement, every rev — captured and visualized instantly. Whether tuning your kart, testing an engine, or comparing laps — Tachometer Monitor gives you the insights you need, live and beautiful.
+                </p>
+                <button
+                    onClick={onGetStarted}
+                    className="mt-8 inline-flex items-center gap-2 py-3 px-8 border border-cyan-tech-300/50 text-md font-semibold rounded-lg text-cyan-tech-200 bg-cyan-tech-500/10 hover:bg-cyan-tech-500/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-cyan-tech-400 transition-all duration-300 transform hover:scale-105"
+                >
+                    See Live Demo
+                    <ArrowRightIcon className="w-5 h-5" />
+                </button>
+            </motion.div>
+        </div>
+      </section>
+
+      {/* Why It Matters Section */}
+      <section className="py-24 px-4 bg-black/20">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.h2 
+            className="text-4xl font-bold mb-6 tracking-wider"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6 }}
+          >
+            Why It Matters
+          </motion.h2>
+          <motion.p 
+            className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Whether you’re an automotive enthusiast, engine tuner, or IoT innovator, Tachometer Real-Time Monitor brings precision, design, and performance into one place.
+          </motion.p>
+          <motion.p 
+            className="text-2xl text-cyan-tech-200 font-semibold tracking-wide"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            ⚡ No delays. No complexity. Just pure, live performance.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* Founders Section */}
+      <FoundersSection />
+
+      {/* Footer */}
+      <footer className="py-8 px-4 text-center text-gray-500 border-t border-cyan-tech-300/10">
+        <p>&copy; {new Date().getFullYear()} Tachometer Monitor. All Rights Reserved.</p>
+      </footer>
     </div>
   );
 };

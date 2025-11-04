@@ -1,15 +1,15 @@
-
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { checkDeviceExists } from '../services/tachometerService';
 import { HyperText } from './HyperText';
+import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 
 interface DeviceSelectorProps {
   onDeviceSelect: (deviceId: string) => void;
+  onBack: () => void;
 }
 
-const DeviceSelector: React.FC<DeviceSelectorProps> = ({ onDeviceSelect }) => {
+const DeviceSelector: React.FC<DeviceSelectorProps> = ({ onDeviceSelect, onBack }) => {
   const [deviceId, setDeviceId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -73,6 +73,16 @@ const DeviceSelector: React.FC<DeviceSelectorProps> = ({ onDeviceSelect }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center font-sans p-4">
+      <motion.button
+        onClick={onBack}
+        aria-label="Go back"
+        className="absolute top-6 left-6 text-gray-400 hover:text-off-white transition-colors z-20 p-2 rounded-full hover:bg-white/10"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <ArrowLeftIcon className="w-6 h-6" />
+      </motion.button>
       <motion.div 
         className="w-full max-w-lg p-8 space-y-6 text-center bg-panel-dark backdrop-blur-xl border border-cyan-tech-300/20 rounded-2xl shadow-glow-cyan"
         initial={{ opacity: 0, scale: 0.95 }}
@@ -116,7 +126,7 @@ const DeviceSelector: React.FC<DeviceSelectorProps> = ({ onDeviceSelect }) => {
               type="submit"
               disabled={isLoading}
               onMouseDown={createRipple}
-              className="ripple-container w-full sm:w-auto shrink-0 flex justify-center py-3 px-6 border border-transparent text-sm font-bold rounded-lg text-black bg-cyan-tech-300 hover:bg-cyan-tech-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-cyan-tech-500 transition-all duration-300 transform hover:scale-105 disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-wait"
+              className="ripple-container relative z-20 w-full sm:w-auto shrink-0 flex justify-center py-3 px-6 border border-transparent text-sm font-bold rounded-lg text-black bg-cyan-tech-300 hover:bg-cyan-tech-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-cyan-tech-500 transition-all duration-300 transform hover:scale-105 disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-wait"
             >
               {isLoading ? 'VERIFYING...' : 'CONNECT'}
             </button>

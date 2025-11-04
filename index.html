@@ -50,6 +50,13 @@
           opacity: 0;
         }
       }
+      .bg-grid {
+        background-image:
+          linear-gradient(rgba(0, 245, 212, 0.07) 1px, transparent 1px),
+          linear-gradient(to right, rgba(0, 245, 212, 0.07) 1px, transparent 1px);
+        background-size: 40px 40px;
+        background-position: center center;
+      }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,6 +69,7 @@
   <script type="importmap">
 {
   "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^0.15.0",
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",

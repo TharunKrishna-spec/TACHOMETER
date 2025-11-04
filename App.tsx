@@ -1,63 +1,57 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import SplashScreen from './components/SplashScreen';
 import LandingPage from './components/LandingPage';
 import DeviceSelector from './components/DeviceSelector';
 import Dashboard from './components/Dashboard';
+import ParticlesBackground from './components/ParticlesBackground';
 import { TachometerDataPoint, Session } from './types';
 import { startDataStream, setDevicePowerState } from './services/tachometerService';
-import ParticlesBackground from './components/ParticlesBackground';
-import SplashScreen from './components/SplashScreen';
 
 const App: React.FC = () => {
-  const [appStage, setAppStage] = useState<'splash' | 'main'>('splash');
-  const [showLanding, setShowLanding] = useState<boolean>(true);
+  const [view, setView] = useState<'splash' | 'landing' | 'selector' | 'dashboard'>('splash');
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  
-  // State for real-time chart (last 30 data points)
-  const [chartData, setChartData] = useState<TachometerDataPoint[]>([]);
-  // State for the complete data of the current, active session
-  const [currentSessionData, setCurrentSessionData] = useState<TachometerDataPoint[]>([]);
-  
+  const [data, setData] = useState<TachometerDataPoint[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
   const [isDeviceOn, setIsDeviceOn] = useState<boolean>(false);
   const [isTogglingDevice, setIsTogglingDevice] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Session state
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
 
   useEffect(() => {
     try {
-      const storedSessions = localStorage.getItem('tachometerSessions');
-      if (storedSessions) {
-        setSessions(JSON.parse(storedSessions));
-      }
-    } catch (e) {
-      console.error("Failed to parse sessions from localStorage", e);
-      localStorage.removeItem('tachometerSessions');
+        const storedSessions = localStorage.getItem('tachometerSessions');
+        if (storedSessions) {
+            setSessions(JSON.parse(storedSessions));
+        }
+    } catch (error) {
+        console.error("Failed to load sessions from local storage", error);
+        localStorage.removeItem('tachometerSessions');
     }
   }, []);
 
-  const saveSessions = (updatedSessions: Session[]) => {
-    setSessions(updatedSessions);
-    localStorage.setItem('tachometerSessions', JSON.stringify(updatedSessions));
-  };
-
-  const handleEnter = () => {
-    setAppStage('main');
+  const handleSaveSessions = (updatedSessions: Session[]) => {
+      try {
+          setSessions(updatedSessions);
+          localStorage.setItem('tachometerSessions', JSON.stringify(updatedSessions));
+      } catch (error) {
+          console.error("Failed to save sessions to local storage", error);
+      }
   };
   
-  const handleGetStarted = () => {
-    setShowLanding(false);
-  };
+  const handleEnter = () => setView('landing');
+  const handleGetStarted = () => setView('selector');
+  const handleReturnToLanding = () => setView('landing');
 
   const handleDeviceSelect = (selectedDeviceId: string) => {
     setDeviceId(selectedDeviceId);
-    setChartData([]);
-    setCurrentSessionData([]);
+    setData([]);
     setIsDeviceOn(false);
     setConnectionStatus('disconnected');
     setError(null);
+    setView('dashboard');
   };
 
   const handleToggleDevice = async (isOn: boolean) => {
@@ -70,28 +64,29 @@ const App: React.FC = () => {
       await setDevicePowerState(deviceId, isOn);
       setIsDeviceOn(isOn);
       if (isOn) {
-        // Start a new session
         setConnectionStatus('connecting');
-        setCurrentSessionData([]);
-        setChartData([]);
+        setData([]);
         setSessionStartTime(Date.now());
       } else {
-        // End the current session
         setConnectionStatus('disconnected');
-        if (sessionStartTime && currentSessionData.length > 1) {
-          const endTime = Date.now();
-          const rpms = currentSessionData.map(d => d.rpm);
-          const newSession: Session = {
-            id: `session_${sessionStartTime}`,
-            startTime: sessionStartTime,
-            endTime: endTime,
-            duration: Math.round((endTime - sessionStartTime) / 1000),
-            data: currentSessionData,
-            avgRpm: Math.round(rpms.reduce((a, b) => a + b, 0) / rpms.length),
-            maxRpm: Math.max(...rpms),
-            minRpm: Math.min(...rpms),
-          };
-          saveSessions([newSession, ...sessions]);
+        if (sessionStartTime && data.length > 1) {
+            const endTime = Date.now();
+            const durationInSeconds = Math.round((endTime - sessionStartTime) / 1000);
+            const rpms = data.map(d => d.rpm);
+            const avgRpm = Math.round(rpms.reduce((a, b) => a + b, 0) / rpms.length);
+            const maxRpm = Math.max(...rpms);
+            const minRpm = Math.min(...rpms);
+    
+            const newSession: Session = {
+                id: `session-${sessionStartTime}`,
+                startTime: sessionStartTime,
+                duration: durationInSeconds,
+                avgRpm,
+                maxRpm,
+                minRpm,
+                data: [...data]
+            };
+            handleSaveSessions([...sessions, newSession].sort((a,b) => b.startTime - a.startTime));
         }
         setSessionStartTime(null);
       }
@@ -110,10 +105,10 @@ const App: React.FC = () => {
       handleToggleDevice(false);
     }
     setDeviceId(null);
-    setChartData([]);
-    setCurrentSessionData([]);
+    setData([]);
     setConnectionStatus('disconnected');
     setError(null);
+    setView('selector');
   };
 
   useEffect(() => {
@@ -124,19 +119,13 @@ const App: React.FC = () => {
           if (connectionStatus !== 'connected') {
             setConnectionStatus('connected');
           }
-          // Append new data to the full session log
-          const updatedSessionData = [...currentSessionData, ...newDataChunk];
-          setCurrentSessionData(updatedSessionData);
-          
-          // Update the rolling chart data (last 30 points)
-          const newChartData = updatedSessionData.slice(-30);
-          setChartData(newChartData);
+          setData(prevData => [...prevData, ...newDataChunk].slice(-60));
       };
 
       unsubscribe = startDataStream(deviceId, dataCallback);
       
     } else {
-      setChartData([]);
+      setData([]);
     }
 
     return () => {
@@ -147,38 +136,48 @@ const App: React.FC = () => {
   }, [deviceId, isDeviceOn, connectionStatus]);
   
   const renderContent = () => {
-    if (showLanding) {
-      return <LandingPage onGetStarted={handleGetStarted} />;
+    switch(view) {
+        case 'splash':
+            return <SplashScreen onEnter={handleEnter} />;
+        case 'landing':
+            return <LandingPage onGetStarted={handleGetStarted} />;
+        case 'selector':
+            return <DeviceSelector onDeviceSelect={handleDeviceSelect} onBack={handleReturnToLanding} />;
+        case 'dashboard':
+            if (!deviceId) {
+                setView('selector'); // Should not happen, but as a fallback
+                return <DeviceSelector onDeviceSelect={handleDeviceSelect} onBack={handleReturnToLanding} />;
+            }
+            return <Dashboard 
+                deviceId={deviceId} 
+                data={data} 
+                connectionStatus={connectionStatus}
+                isDeviceOn={isDeviceOn}
+                sessions={sessions}
+                onChangeDevice={handleChangeDevice}
+                onToggleDevice={handleToggleDevice}
+                onSaveSessions={handleSaveSessions}
+            />;
+        default:
+             return <SplashScreen onEnter={handleEnter} />;
     }
-  
-    if (!deviceId) {
-      return <DeviceSelector onDeviceSelect={handleDeviceSelect} />;
-    }
-  
-    return <Dashboard 
-      deviceId={deviceId} 
-      chartData={chartData} 
-      sessionData={currentSessionData}
-      sessions={sessions}
-      onSaveSessions={saveSessions}
-      connectionStatus={connectionStatus}
-      isDeviceOn={isDeviceOn}
-      onChangeDevice={handleChangeDevice}
-      onToggleDevice={handleToggleDevice}
-      isTogglingDevice={isTogglingDevice}
-      error={error}
-    />;
-  }
-
-  if (appStage === 'splash') {
-    return <SplashScreen onEnter={handleEnter} />;
   }
 
   return (
     <>
       <ParticlesBackground />
       <div className="relative z-10">
-        {renderContent()}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </>
   )

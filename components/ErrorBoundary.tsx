@@ -1,25 +1,24 @@
-// FIX: Refactored component to use `import * as React` and `React.Component` to resolve a TypeScript error where `this.props` was not being correctly identified on the class instance. This approach ensures proper type inheritance.
-import * as React from 'react';
+// FIX: Refactored to use named imports from 'react' to resolve type errors with class components.
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 interface State {
   hasError: boolean;
 }
 
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
-  public state: State = {
-    hasError: false,
-  };
+class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
+  // Initialized state using a class property.
+  state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log the error to an error reporting service
     console.error("Uncaught error:", error, errorInfo);
   }
