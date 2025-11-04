@@ -24,7 +24,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ sessions, onClose }) 
       <div className="bg-panel-dark border border-cyan-tech-300/20 rounded-2xl shadow-glow-cyan w-full max-w-4xl h-full max-h-[80vh] p-6 flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-off-white tracking-wider">Session Comparison</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">&times;</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
         </div>
         <div className="flex-grow">
           <ResponsiveContainer width="100%" height="100%">
@@ -63,7 +63,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ sessions, onClose }) 
                 }}
                 labelStyle={{ color: '#9BFCF3' }}
               />
-              <Legend formatter={(value, entry, index) => <span className="text-off-white">{new Date(sessions[index].startTime).toLocaleDateString()}</span>} />
+              <Legend formatter={(value, entry, index) => <span className="text-off-white">{new Date(sessions[index].startTime).toLocaleString()}</span>} />
               {sessions.map((session, index) => (
                 <React.Fragment key={session.id}>
                     <Area 
