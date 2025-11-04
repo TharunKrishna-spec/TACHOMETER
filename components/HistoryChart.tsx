@@ -35,7 +35,7 @@ const HistoryChart: React.FC<HistoryChartProps> = ({ data }) => {
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 245, 212, 0.1)" />
         <XAxis dataKey="time" stroke="#888" tick={{ fill: '#888', fontSize: 12 }} />
-        <YAxis stroke="#888" domain={[0, 8000]} tick={{ fill: '#888', fontSize: 12 }} />
+        <YAxis stroke="#888" domain={[0, 1200]} tick={{ fill: '#888', fontSize: 12 }} />
         <Tooltip
             contentStyle={{
                 backgroundColor: 'rgba(10, 10, 10, 0.8)',

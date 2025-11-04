@@ -5,15 +5,15 @@ interface TachometerGaugeProps {
   maxRpm?: number;
 }
 
-const TachometerGauge: React.FC<TachometerGaugeProps> = ({ rpm, maxRpm = 8000 }) => {
+const TachometerGauge: React.FC<TachometerGaugeProps> = ({ rpm, maxRpm = 1000 }) => {
   const normalizedRpm = Math.min(Math.max(rpm, 0), maxRpm);
   const angle = (normalizedRpm / maxRpm) * 270 - 135; // Map RPM to a 270 degree arc
 
   const redlineStart = maxRpm * 0.8;
   const isRedline = normalizedRpm >= redlineStart;
 
-  const ticks = Array.from({ length: 9 }, (_, i) => {
-    const tickRpm = i * (maxRpm / 8);
+  const ticks = Array.from({ length: 11 }, (_, i) => {
+    const tickRpm = i * (maxRpm / 10);
     const tickAngle = (tickRpm / maxRpm) * 270 - 135;
     const isRedlineTick = tickRpm >= redlineStart;
     
@@ -31,7 +31,7 @@ const TachometerGauge: React.FC<TachometerGaugeProps> = ({ rpm, maxRpm = 8000 })
     return (
       <g key={i}>
         <line x1={x1} y1={y1} x2={x2} y2={y2} className={isRedlineTick ? "stroke-red-500" : "stroke-gray-600"} strokeWidth="1.5" />
-        { i > 0 && 
+        { i > 0 && i % 2 === 0 && 
             <text 
                 x={labelX} y={labelY} 
                 textAnchor="middle" 
@@ -113,7 +113,7 @@ const TachometerGauge: React.FC<TachometerGaugeProps> = ({ rpm, maxRpm = 8000 })
         
         {/* Ticks */}
         {ticks}
-        <text x="50" y="30" textAnchor="middle" className="fill-gray-500 text-[6px] font-mono tracking-widest">x1000 RPM</text>
+        <text x="50" y="30" textAnchor="middle" className="fill-gray-500 text-[6px] font-mono tracking-widest">x100 RPM</text>
 
         {/* Needle */}
         <g transform={`rotate(${angle} 50 50)`} style={{ transition: 'transform 0.5s ease-out' }}>

@@ -1,5 +1,5 @@
-// FIX: Changed import to use named import for Component to fix type resolution issues.
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+// FIX: Changed import to use React.Component directly to ensure correct type inheritance for props and state.
+import React, { ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -9,8 +9,8 @@ interface State {
   hasError: boolean;
 }
 
-// FIX: Changed React.Component to Component to resolve issue where props were not being recognized.
-class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
+// FIX: Changed 'extends Component' to 'extends React.Component' to resolve an issue where TypeScript was not correctly identifying the 'props' property on the class instance.
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
   public state: State = {
     hasError: false,
   };
