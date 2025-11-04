@@ -1,15 +1,15 @@
-// FIX: Refactored to use named imports from 'react' to resolve type errors with class components.
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+// FIX: The way React was imported was causing type errors for this class component. Switched to default import and explicit React.Component to resolve the issue.
+import React from 'react';
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 interface State {
   hasError: boolean;
 }
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
   // Initialized state using a class property.
   state: State = { hasError: false };
 
@@ -18,7 +18,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log the error to an error reporting service
     console.error("Uncaught error:", error, errorInfo);
   }
