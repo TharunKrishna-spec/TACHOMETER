@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Session } from '../types';
 
 interface ComparisonModalProps {
@@ -27,7 +28,15 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ sessions, onClose }) 
         </div>
         <div className="flex-grow">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
+              <defs>
+                {sessions.map((session, index) => (
+                  <linearGradient key={`grad-${session.id}`} id={`color-${index}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0.4} />
+                    <stop offset="95%" stopColor={COLORS[index % COLORS.length]} stopOpacity={0} />
+                  </linearGradient>
+                ))}
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 245, 212, 0.1)" />
               <XAxis 
                 type="number" 
@@ -41,7 +50,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ sessions, onClose }) 
               />
               <YAxis 
                 stroke="#888" 
-                domain={[0, 1200]} 
+                domain={[0, 1000]} 
                 tick={{ fill: '#888', fontSize: 12 }} 
                 label={{ value: 'RPM', angle: -90, position: 'insideLeft', fill: '#888' }}
               />
@@ -56,18 +65,29 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ sessions, onClose }) 
               />
               <Legend formatter={(value, entry, index) => <span className="text-off-white">{new Date(sessions[index].startTime).toLocaleDateString()}</span>} />
               {sessions.map((session, index) => (
-                <Line 
-                  key={session.id} 
-                  type="monotone" 
-                  dataKey="rpm" 
-                  data={session.data.map(p => ({ timeElapsed: (p.timestamp - session.startTime) / 1000, rpm: p.rpm }))} 
-                  stroke={COLORS[index % COLORS.length]} 
-                  strokeWidth={2} 
-                  dot={false}
-                  name={new Date(session.startTime).toLocaleString()}
-                />
+                <React.Fragment key={session.id}>
+                    <Area 
+                        type="natural" 
+                        dataKey="rpm" 
+                        data={session.data.map(p => ({ timeElapsed: (p.timestamp - session.startTime) / 1000, rpm: p.rpm }))} 
+                        stroke="none" 
+                        fill={`url(#color-${index})`}
+                        name={new Date(session.startTime).toLocaleString()}
+                        isAnimationActive={false}
+                    />
+                    <Line 
+                        type="natural" 
+                        dataKey="rpm" 
+                        data={session.data.map(p => ({ timeElapsed: (p.timestamp - session.startTime) / 1000, rpm: p.rpm }))} 
+                        stroke={COLORS[index % COLORS.length]} 
+                        strokeWidth={2} 
+                        dot={false}
+                        name={new Date(session.startTime).toLocaleString()}
+                        isAnimationActive={false}
+                    />
+                </React.Fragment>
               ))}
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>

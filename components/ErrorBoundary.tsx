@@ -1,32 +1,25 @@
-// FIX: Changed import to use React.Component directly to ensure correct type inheritance for props and state.
-import React, { ErrorInfo, ReactNode } from 'react';
+// FIX: Refactored component to use `import * as React` and `React.Component` to resolve a TypeScript error where `this.props` was not being correctly identified on the class instance. This approach ensures proper type inheritance.
+import * as React from 'react';
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 interface State {
   hasError: boolean;
 }
 
-// FIX: Changed 'extends Component' to 'extends React.Component' to resolve an issue where TypeScript was not correctly identifying the 'props' property on the class instance.
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
   public state: State = {
     hasError: false,
   };
-
-  // FIX: Added constructor with super(props) to resolve a potential type resolution issue
-  // where 'this.props' was not being recognized on the class instance.
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-  }
 
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log the error to an error reporting service
     console.error("Uncaught error:", error, errorInfo);
   }

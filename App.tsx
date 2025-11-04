@@ -12,7 +12,7 @@ const App: React.FC = () => {
   const [showLanding, setShowLanding] = useState<boolean>(true);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   
-  // State for real-time chart (last 60 data points)
+  // State for real-time chart (last 30 data points)
   const [chartData, setChartData] = useState<TachometerDataPoint[]>([]);
   // State for the complete data of the current, active session
   const [currentSessionData, setCurrentSessionData] = useState<TachometerDataPoint[]>([]);
@@ -128,8 +128,8 @@ const App: React.FC = () => {
           const updatedSessionData = [...currentSessionData, ...newDataChunk];
           setCurrentSessionData(updatedSessionData);
           
-          // Update the rolling chart data (last 60 points)
-          const newChartData = updatedSessionData.slice(-60);
+          // Update the rolling chart data (last 30 points)
+          const newChartData = updatedSessionData.slice(-30);
           setChartData(newChartData);
       };
 
